@@ -1,28 +1,29 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file.
+// It defines the data model (tables/enums) and how Prisma generates the client.
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// Generator configuration for Prisma Client (TypeScript/JavaScript ORM client).
 generator client {
   provider = "prisma-client-js"
 }
 
+// Database connection configuration.
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql" // Database provider (PostgreSQL)
+  url      = env("DATABASE_URL") // Connection string provided via environment variable
 }
 
+// Job model representing a single background job tracked in the database.
 model Job {
-  id        String    @id @default(uuid())
-  status    JobStatus
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String    @id @default(uuid()) // Primary key as UUID
+  status    JobStatus // Current job state
+  createdAt DateTime  @default(now()) // Creation timestamp
+  updatedAt DateTime  @updatedAt // Updated automatically on each change
 }
 
+// Enum defining allowed job states.
 enum JobStatus {
-  PENDING
-  PROCESSING
-  DONE
-  FAILED
+  PENDING // Job created but not started
+  PROCESSING // Job currently running
+  DONE // Job completed successfully
+  FAILED // Job failed
 }

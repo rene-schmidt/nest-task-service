@@ -1,98 +1,178 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🧰 NestJS Job Queue & Worker Task Service API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-ready REST API built with **NestJS**, featuring **background job processing** with **Bull (Redis)**, **job status tracking** persisted in **PostgreSQL**, and **Prisma ORM** for type-safe database access.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project serves as a clean and scalable backend foundation for running **asynchronous / long-running tasks** (exports, emails, reports, media processing) without blocking HTTP requests, while providing endpoints to **create jobs** and **check their status**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Features
 
-## Project setup
+### Job Creation & Enqueuing
+- Create a job via a REST endpoint
+- Persist the job to PostgreSQL with initial status **PENDING**
+- Enqueue a queue task to be processed asynchronously
 
-```bash
-$ npm install
+### Worker Processing
+- Bull queue worker consumes jobs in the background
+- Updates job lifecycle in the database:
+  **PENDING → PROCESSING → DONE**
+- Includes a simulated long-running workload (~10 seconds) to demonstrate async execution
+
+### Job Status Retrieval
+- Fetch an existing job by ID
+- Returns the current status from the database
+- Returns a proper not-found response when the job does not exist
+
+### Queue Infrastructure
+- Bull queue backed by Redis
+- Queue name: **jobs**
+- Job type: **run**
+- Dedicated processor updates status during execution
+
+### Database
+- Prisma ORM
+- PostgreSQL
+- Type-safe queries
+- Clean schema design (Job model + JobStatus enum)
+
+---
+
+## 🧱 Tech Stack
+
+- Node.js
+- NestJS
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- Bull (Queue)
+- Redis
+
+---
+
+## 📁 Project Structure
+
+```text
+src/
+├── jobs/
+│   ├── jobs.controller.ts     # REST endpoints (create job, get status)
+│   ├── jobs.service.ts        # DB create + enqueue to queue
+│   └── jobs.module.ts
+├── queue/
+│   ├── jobs.processor.ts      # Worker: processes queue jobs, updates DB status
+│   ├── queue.module.ts        # Bull/Redis configuration
+│   └── queue.service.ts
+├── prisma/
+│   └── prisma.service.ts      # Prisma client service
+├── app.module.ts
+└── main.ts                    # Application entry point (default port 3002)
+prisma/
+└── schema.prisma              # Job model + JobStatus enum
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## ⚙️ Prerequisites
 
-# watch mode
-$ npm run start:dev
+Make sure you have installed:
 
-# production mode
-$ npm run start:prod
-```
+- Node.js (v18+ recommended)
+- npm
+- PostgreSQL
+- Redis
+- Git
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## ⚙️ Environment Variables
 
-# e2e tests
-$ npm run test:e2e
+Create a .env file in the project root:
 
-# test coverage
-$ npm run test:cov
-```
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/DATABASE_NAME  
+REDIS_HOST=localhost  
+REDIS_PORT=6379  
+PORT=3002  
 
-## Deployment
+Notes:
+- If **REDIS_HOST** is not set, the app defaults to **redis** (useful in Docker networks).
+- If **PORT** is not set, the server defaults to **3002**.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 📦 Installation
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Clone the repository:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+git clone https://github.com/your-username/your-repo.git  
+cd your-repo  
 
-## Resources
+Install dependencies:
 
-Check out a few resources that may come in handy when working with NestJS:
+npm install
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 🗄️ Database Setup (Prisma)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Generate Prisma Client:
+npx prisma generate
 
-## Stay in touch
+Run database migrations:
+npx prisma migrate dev --name init
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+(Optional) Open Prisma Studio:
+npx prisma studio
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## ▶️ Running the Application
+
+Development mode:
+npm run start
+
+Watch mode:
+npm run start:dev
+
+Production mode:
+npm run start:prod
+
+Server runs on:
+http://localhost:3002
+
+---
+
+## 🔑 Job Flow
+
+Create a job:
+POST /jobs
+
+What happens next:
+1) The API creates a database record with status **PENDING**
+2) The service enqueues a Bull job to the **jobs** queue
+3) The worker picks it up, marks it **PROCESSING**
+4) After processing (simulated ~10 seconds), it marks it **DONE**
+
+Check job status:
+GET /jobs/:id
+
+---
+
+## 📌 API Endpoints
+
+Jobs:
+- POST /jobs
+- GET /jobs/:id
+
+---
+
+## 🧠 Notes
+
+- Redis is required for Bull queues.
+- Job state is stored in PostgreSQL via Prisma (not in memory).
+- This project is designed as a scalable foundation for background task processing.
+
+---
+
+## 📄 License
+
+MIT License
